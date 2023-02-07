@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block main %}
+    <form action="/register" method="post">
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username" placeholder="Username" type="text">
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" id="password" name="password" placeholder="Password" type="password">
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" id="password" name="confirmpassword" placeholder=" Confirm Password" type="password">
+        </div>
+        <p style = "font-size:x-small" >Password between 8 to 15 characters which contain at least one lowercase letter,<br> one uppercase letter, one numeric digit, and one special character</p>
+
+        <script>
+            document.querySelector('#password').addEventListener('focusout' , function(){
+                let input = document.querySelector('#password');
+                var decimal=  /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/;
+                if(input.value.match(decimal))
+                {
+
+                    input.style.backgroundColor = 'green';
+                }
+                else
+                {
+                    alert('Password between 8 to 15 characters which contain at least one lowercase letter, one uppercase letter, one numeric digit, and one special character ')
+                    input.style.backgroundColor = 'red';
+                }
+            });
+        </script>
+        <button class="btn btn-primary" type="submit">Register</button>
+    </form>
+{% endblock %}
