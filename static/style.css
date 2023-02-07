@@ -1,0 +1,65 @@
+.index-h2
+{
+    text-align: left;
+    margin-left: 75px;
+    padding-left: 20px;
+    margin-bottom: 10px;
+}
+.body-div
+{
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: auto;
+    padding-right: auto;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    padding-bottom: 25px;
+}
+
+.button-div
+{
+    border: 1px solid black;
+    text-align: center;
+    margin-right: 10px;
+    margin-left: 10px;
+    padding: 10px;
+}
+
+.button-div :hover
+{
+    color: darkslategray;
+}
+
+.button-div a
+{
+    text-decoration: none;
+    color: black;
+}
+
+.row
+{
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.index-h4
+{
+    text-align: left;
+    margin-left: 75px;
+    padding-left: 20px;
+    margin-bottom: 10px;
+}
+
+.update-div
+{
+    margin-left: 115px;
+    max-width: 80%;
+    height: 200px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    
+}
+
+.update-p
+{
+    padding-left: 20px;
+    text-align: left !important;
+}

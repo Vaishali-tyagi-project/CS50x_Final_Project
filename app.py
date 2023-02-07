@@ -12,6 +12,7 @@ Session(app)
 @app.route("/")
 def index():
     session.clear()
+    session["Admin"] = 1
     session["user_id"] = 1
     return render_template("index.html")
 
