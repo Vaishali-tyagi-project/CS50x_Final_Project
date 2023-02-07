@@ -1,5 +1,44 @@
-<!DOCTYPE html>
-    <body>
-        <p>Hello World</p>
-    </body>
-</html>
+{% extends "layout.html" %}
+
+{% block title %}
+    Index
+{% endblock %}
+
+{% block main %}
+    <h2 class="index-h2">Index Desktop</h2>
+    <div class = "container body-div">
+        <div class = "row">
+            <div class="col-md-2"></div>
+            <div class = "button-div col-md-2">
+                <a href = "#"> Item Functionality </a>
+            </div>
+            <div class = "button-div col-md-2">
+                <a href = "#"> Worker Functionality </a>
+            </div>
+            <div class = "button-div col-md-2">
+                <a href = "#"> Today's Sale </a>
+            </div>
+            <div class = "button-div col-md-2">
+                <a href = "#"> Profit Graph </a>
+            </div>
+            <div class="col-md-2"></div>    
+        </div>
+        <div class = "row">
+            <div class="col-md-3"></div>
+            <div class = "button-div col-md-2">
+                <a href = "#"> Generate Bill </a>
+            </div>
+            <div class = "button-div col-md-2">
+                <a href = "#"> Money Withdrawal </a>
+            </div>
+            <div class = "button-div col-md-2">
+                <a href = "#"> Daily Routine </a>
+            </div>
+            <div class="col-md-3"></div>
+        </div>
+        <h4 class = "index-h4">Recent Updates</h4>
+        <div class = "update-div">
+            <p class = "update-p"> Total Purchase till now: </p>
+        </div>
+    </div>
+{% endblock %}
