@@ -51,9 +51,8 @@ def login():
 
         # Query database for username
         rows = db.execute("SELECT * FROM Credentials WHERE username = ?" ,request.form.get("username"))
-        print(rows)
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["password"], request.form.get("password")):
+        if len(rows) != 1 or not  (rows[0]["password"]==  request.form.get("password")):
             return render_template( "error.html" , errormsg = "invalid username and/or password", code = 403)
 
         # Remember which user has logged in
@@ -97,7 +96,6 @@ def register():
         person_id = db.execute("Select person_id from Person where phone_number = ?" , phone)
         person_id = person_id[0]
         person_id = person_id["person_id"]
-        print(person_id)        
         
         return render_template("Credentials.html",person_id = person_id)
 
@@ -111,6 +109,11 @@ def credentials():
         username = request.form.get("username")
         password = request.form.get("password")
         db.execute("INSERT INTO Credentials(person_id,username,password) VALUES(?,?,?)" , person_id , username , password)
-        print(person_id)
         return render_template("login.html")
+    
+
+@app.route("/additem" , methods=["GET", "POST"])
+def additem():
+    print("hello")
+    return render_template("additem.html")
 
