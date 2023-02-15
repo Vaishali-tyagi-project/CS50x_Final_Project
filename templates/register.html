@@ -1,38 +1,61 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Register
+Register
 {% endblock %}
 
 {% block main %}
-    <form action="/register" method="post">
-        <div class="mb-3">
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" id="username" name="username" placeholder="Username" type="text">
-        </div>
-        <div class="mb-3">
-            <input class="form-control mx-auto w-auto" id="password" name="password" placeholder="Password" type="password">
-        </div>
-        <div class="mb-3">
-            <input class="form-control mx-auto w-auto" id="password" name="confirmpassword" placeholder=" Confirm Password" type="password">
-        </div>
-        <p style = "font-size:x-small" >Password between 8 to 15 characters which contain at least one lowercase letter,<br> one uppercase letter, one numeric digit, and one special character</p>
 
-        <script>
-            document.querySelector('#password').addEventListener('focusout' , function(){
-                let input = document.querySelector('#password');
-                var decimal=  /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/;
-                if(input.value.match(decimal))
-                {
+<div class="container register-body">
+    <div class="row">
+        <h3 class="mb-4">
+            Registration Info</h3>
+    </div>
+    <form class = "register-form mx-5" action="/register" method="post">
 
-                    input.style.backgroundColor = 'green';
-                }
-                else
-                {
-                    alert('Password between 8 to 15 characters which contain at least one lowercase letter, one uppercase letter, one numeric digit, and one special character ')
-                    input.style.backgroundColor = 'red';
-                }
-            });
-        </script>
-        <button class="btn btn-primary" type="submit">Register</button>
+        <div class="row">
+            <div class="col-md-6">
+                <input type="text" class="form-control" id="firstname"  name = "firstname" placeholder="First Name" required />
+            </div>
+            <div class="col-md-6">
+                <div class="form-outline">
+                    <input type="text" class="form-control" id="lastname" name = "lastname" placeholder="Last Name" required />
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 ">
+                <div class="form-outline">
+                    <input type="text" class="form-control" id="email" name = "email" placeholder="Email" required />
+                </div>
+            </div>
+            <div class="col-md-6 ">
+                <div class="form-outline">
+                    <input type="text" class="form-control" id="phone" name = "phone" placeholder="Phone Number" required />
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-3">
+                <input class="form-check-input" type="checkbox" value="1" id="isadmin"  name = "isadmin"/>
+                <label class="form-check-label">IsAdmin</label>
+
+            </div>
+            <div class = "col-md-9">
+
+            </div>
+
+        </div>
+
+        <div class="button">
+            <button type="submit" class=" form-control btn btn-success" >Register</button>
+        </div>
+
     </form>
-{% endblock %}
+
+
+</div>
+
+
+{%endblock%}
