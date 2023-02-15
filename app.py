@@ -5,6 +5,7 @@ import re
 from flask import Flask, render_template, session, request, redirect
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
+from datetime import date
 
 
 
@@ -21,14 +22,42 @@ Session(app)
 @app.route("/")
 def index():
     session.clear()
+    name = dict(
+        {
+            "name": "Namkeen",
+            "perKG": 200,
+            "Quantity": 5
+        }
+    )
     session["Admin"] = 1
-    session["user_id"] = 1
+    session["user_id"] = name
+    session["cart"] = []
+    item = dict({
+        "name" : "Namkeen",
+        "pricePerKG" : 200,
+        "quantity" : 2,
+         "discount" : 10,
+         "totalPrice" : (200 * 2) - ( 10 * (200 * 2) * 0.01)
+    })
+    list_item =  session["cart"]
+    list_item.append(item)
+    session["user_name"] = "Harmeet"
+    session["cart"] = list_item
+    session["today_date"] = date.today()
     return render_template("index.html")
 
 @app.route("/billGen")
 def billGen():
-    people = db.execute("SELECT * FROM person WHERE person_id = ?", "2")
-    return render_template("billGen.html", people = people)
+    if request.method == 'POST':
+        if request.form["submit_button"] == "Add Item":
+            print("Add item")
+        elif request.form["submit_button"] == "Edit":
+            print("Edit")
+        elif request.form["submit_button"] == "Delete":
+            print("Delete")
+        
+    else:
+        return render_template("billGen.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
