@@ -30,13 +30,15 @@
                         <ul class="navbar-nav me-auto mt-2">
                             <li class="nav-item"><a class="nav-link" href="/billGen">Bill Generate</a></li>
                             <li class="nav-item"><a class="nav-link" href="/register">Registration</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#">Add Item</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/additem">Add Item</a></li>
                             <li class="nav-item"><a class="nav-link" href="#">Total Purchase</a></li>
                             <li class="nav-item"><a class="nav-link" href="#">Workers</a></li>
                         </ul>
                         <ul class="navbar-nav ms-auto mt-2">
                             <li class="nav-item"><a class="nav-link" href="#">Change Password</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#">Log Out</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/login">Log In</a></li>
+
                         </ul>
                         {% else %}
                         <ul class="navbar-nav me-auto mt-2">
@@ -63,8 +65,11 @@
             {% block main %}{% endblock %}
         </main>
 
-        <footer class="mb-5 small text-center text-muted">
-            Made By VH</a>
+        <footer>
+            <div class="row">
+                <p>Made By VH</p>
+            </div>
+            
         </footer>
 
     </body>
