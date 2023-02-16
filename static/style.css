@@ -81,14 +81,15 @@
 {
     background-color: white !important;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-    width:60% !important;
+    width:50% !important;
     height: 100% !important;
-    border-radius: 10px;
+    border-radius: 5px;
 
 }
 .item
 {
-    padding-left: 45px;
+    margin-left: 35px;
+    text-align: left;
 }
 body
 {
