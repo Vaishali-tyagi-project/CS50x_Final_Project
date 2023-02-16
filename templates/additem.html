@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Add Item
+{% endblock %}
+
+{% block main %}
+<form action="/additem" method="post">
+<div class="container additem_body">
+    <div class="row">
+        <div class="col-md-5  item" >
+            <input type="text" class="form-control" id="itemname" name="itemname" placeholder="Item Name" required />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-5  item"  >
+            <input type="text" class="form-control" id="price" name="price" placeholder="Price" required />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-5 item" >
+            <input type="text" class="form-control" id="quantity" name="quantity" placeholder="Quantity" required />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-5 item" >
+            <input type="text" class="form-control" id="category" name="category" placeholder="Category" required />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-5 item">
+            <button class="btn btn-primary" type="submit">Add Item</button>
+        </div>
+    </div>
+</div>
+</form>
+
+{% endblock %}
