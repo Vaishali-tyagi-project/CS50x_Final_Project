@@ -141,6 +141,23 @@ def credentials():
 
 @app.route("/additem" , methods=["GET", "POST"])
 def additem():
-    print("hello")
-    return render_template("additem.html")
+    if request.method == "POST":
+        itemname = request.form.get("itemname")
+        price = request.form.get("price")
+        quantity = request.form.get("quantity")
+        category_id = request.form.get("category_id")
+        if category_id == "0":
+            new_category = request.form.get("newcategory")
+            print(new_category)
+            db.execute("INSERT INTO Category(category_name) VALUES(?)" , new_category)
+            category_id = db.execute("SELECT category_id from Category where category_name = ?" , new_category)
+            category_id = category_id[0]
+            category_id = category_id["category_id"]
+
+        db.execute("INSERT INTO Item(itemname,price,quantity,category_id) VALUES(?,?,?,?)" , itemname , price ,quantity, category_id)
+        return redirect("/")
+    else:
+        category = db.execute("SELECT * from Category")
+        print(category)
+        return render_template("additem.html" , category = category)
 
