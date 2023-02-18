@@ -3,7 +3,9 @@ CREATE TABLE Item(
     price INTEGER NOT NULL,
     itemname TEXT NOT NULL,
     quantity INTEGER NOT NULL,
-    category_id INTEGER NOT NULL
+    category_id INTEGER NOT NULL,
+    retail_discount INTEGER NOT NULL,
+    wholesale_discount INTEGER NOT NULL
 
 );
 
