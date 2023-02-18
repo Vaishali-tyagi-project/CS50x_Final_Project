@@ -84,7 +84,11 @@ def login():
         # Remember which user has logged in
         session["user_id"] = rows[0]["person_id"]
         session["user_name"] = request.form.get("username")
+
         session["today_date"] = date.today()
+
+
+
         # Redirect user to home page
         return redirect("/")
 
@@ -146,18 +150,46 @@ def additem():
         price = request.form.get("price")
         quantity = request.form.get("quantity")
         category_id = request.form.get("category_id")
+        retail_discount = request.form.get("retail_discount")
+        wholesale_discount = request.form.get("wholesale_discount")
         if category_id == "0":
             new_category = request.form.get("newcategory")
-            print(new_category)
             db.execute("INSERT INTO Category(category_name) VALUES(?)" , new_category)
             category_id = db.execute("SELECT category_id from Category where category_name = ?" , new_category)
             category_id = category_id[0]
             category_id = category_id["category_id"]
 
-        db.execute("INSERT INTO Item(itemname,price,quantity,category_id) VALUES(?,?,?,?)" , itemname , price ,quantity, category_id)
+        db.execute("INSERT INTO Item(itemname,price,quantity,category_id,retail_discount,wholesale_discount) VALUES(?,?,?,?,?,?)" , itemname , price ,quantity, category_id,retail_discount,wholesale_discount)
         return redirect("/")
     else:
         category = db.execute("SELECT * from Category")
         print(category)
         return render_template("additem.html" , category = category)
+    
+
+@app.route("/addworker" , methods=["GET", "POST"])
+def addworker():
+    if request.method == "POST":
+        fullname = request.form.get("fullname")
+        phone = request.form.get("phone")
+        address = request.form.get("address")
+        salary = request.form.get("salary")
+        workers = db.execute("SELECT * from Worker")
+        print(workers)
+        db.execute("INSERT INTO Worker(fullname,phone,address,salary) VALUES(?,?,?,?)" , fullname , phone ,address, salary)
+        return redirect("/")
+        
+    return render_template("workers.html")
+
+@app.route("/moneywithdrawal" , methods=["GET", "POST"])
+def withdrawmoney():
+    if request.method == "POST":
+        
+
+        return redirect("/")
+    else:
+        return render_template("moneywithdrawal.html")
+
+
+
 
