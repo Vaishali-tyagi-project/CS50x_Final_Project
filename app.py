@@ -22,41 +22,38 @@ Session(app)
 
 @app.route("/")
 def index():
-    session.clear()
-    name = dict(
-        {
-            "name": "Namkeen",
-            "perKG": 200,
-            "Quantity": 5
-        }
-    )
+    
     session["Admin"] = 1
-    session["user_id"] = name
-    session["cart"] = []
     item = dict({
         "name" : "Namkeen",
         "pricePerKG" : 200,
         "quantity" : 2,
-         "discount" : 10,
-         "totalPrice" : (200 * 2) - ( 10 * (200 * 2) * 0.01)
+        "discount" : 10,
+        "totalPrice" : (200 * 2) - ( 10 * (200 * 2) * 0.01)
     })
-    list_item =  session["cart"]
+    list_item = []
     list_item.append(item)
-    session["user_name"] = "Harmeet"
-    session["cart"] = list_item
-    session["today_date"] = date.today()
+
+    session["cart"] = {
+        "customer_name" : "Vaishali",
+        "phone_number" : "9876543210",
+        "cart_item" : list_item 
+    }
+    
     return render_template("index.html")
 
-@app.route("/billGen")
+@app.route("/billGen", methods=["GET", "POST"])
 def billGen():
     if request.method == 'POST':
-        if request.form["submit_button"] == "Add Item":
+        if request.form["billGen-button"] == "Add Item":
             print("Add item")
-        elif request.form["submit_button"] == "Edit":
+            session["customer_name"] = request.form.get("customer-name")
+            session["customer_name"] = request.form.get("customer-phoneNo")
+        elif request.form["billGen-button"] == "Edit":
             print("Edit")
-        elif request.form["submit_button"] == "Delete":
+        elif request.form["billGen-button"] == "Delete":
             print("Delete")
-        
+        return render_template("billGen.html")
     else:
         return render_template("billGen.html")
 
@@ -86,7 +83,8 @@ def login():
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["person_id"]
-
+        session["user_name"] = request.form.get("username")
+        session["today_date"] = date.today()
         # Redirect user to home page
         return redirect("/")
 

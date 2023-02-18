@@ -14,11 +14,11 @@
                 <div class = "row">
                     <div class="col-md-6 form-group">
                         <label class="text-left" for="cashier-name">Cashier</label><br>
-                        <input class="form-control" autocomplete="off" id = "cashier-name" name = "cashier-name" readonly placeholder="Cashier Name" value=" {{ session[user_name]}} " type="text">
+                        <input class="form-control" autocomplete="off" id = "cashier-name" name = "cashier-name" readonly placeholder="Cashier Name" value = "{{session["user_name"] | capitalize }}" type="text">
                     </div>
                     <div class="col-md-6 form-group">
                         <label class="text-left" for="today-date">Today's Date</label><br>
-                        <input class="form-control" autocomplete="off" id = "today-date" readonly name = "today-date" placeholder="Todays Date" type="text" value=" {{session[today_date]}} ">
+                        <input class="form-control" autocomplete="off" id = "today-date" readonly name = "today-date" placeholder="Todays Date" type="text" value=" {{session["today_date"]}}">
                     </div>
                 </div>
                 <div class = "row">
@@ -37,7 +37,7 @@
                         <select class="form-control" name="item" id="item">
                             <option disabled="" selected="">Select item</option>
                             {% for item in items %}
-                            <option value = {{item.name}}>{{item.name}}</option>
+                            <option value = {{item.id}}>{{item.name}}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -94,7 +94,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for item in session["cart"] %}
+                        {% for item in session["cart"]["cart_item"] %}
                         <tr>
                             <td>{{item.name}}</td>
                             <td>{{item.pricePerKG}}</td>
@@ -104,10 +104,10 @@
                             <td>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <button type="button" class="btn btn-primary" onclick="alert( session[cart].Quantity | string )">Edit</button>
+                                        <button type="submit" name="billGen-button" value="Edit" class="btn btn-primary">Edit</button>
                                     </div>
                                     <div class="col-md-6">
-                                        <button type="button" class="btn btn-danger">Delete</button>
+                                        <button type="submit" name="billGen-button" value="Delete" class="btn btn-danger">Delete</button>
                                     </div>
                                 </div>
                             </td>
