@@ -1,12 +1,14 @@
 from flask import Flask, render_template, session
 from flask_session import Session
 import re
-from flask import Flask, render_template, session, request, redirect
+from flask import Flask, render_template, session, request, redirect, make_response
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import date
 from cs50 import SQL
-
+import json
+import pdfkit
+import webbrowser
 
 
 app = Flask(__name__)
@@ -24,38 +26,125 @@ Session(app)
 def index():
     
     session["Admin"] = 1
-    item = dict({
-        "name" : "Namkeen",
-        "pricePerKG" : 200,
-        "quantity" : 2,
-        "discount" : 10,
-        "totalPrice" : (200 * 2) - ( 10 * (200 * 2) * 0.01)
-    })
-    list_item = []
-    list_item.append(item)
-
     session["cart"] = {
-        "customer_name" : "Vaishali",
-        "phone_number" : "9876543210",
-        "cart_item" : list_item 
+        "customer_name" : "",
+        "phone_number" : "",
+        "cart_item" : [], 
+        "totalAmount" : 0,
+        "printed" : ""
     }
     
     return render_template("index.html")
 
 @app.route("/billGen", methods=["GET", "POST"])
 def billGen():
+    if session["cart"]["printed"] == "printed":
+        session["cart"] = {
+            "customer_name" : "",
+            "phone_number" : "",
+            "cart_item" : [], 
+            "totalAmount" : 0,
+            "printed" : ""
+        }
     if request.method == 'POST':
         if request.form["billGen-button"] == "Add Item":
             print("Add item")
-            session["customer_name"] = request.form.get("customer-name")
-            session["customer_name"] = request.form.get("customer-phoneNo")
-        elif request.form["billGen-button"] == "Edit":
-            print("Edit")
-        elif request.form["billGen-button"] == "Delete":
-            print("Delete")
+            session["cart"]["customer_name"] = request.form.get("customer-name")
+            session["cart"]["phone_number"] = request.form.get("customer-phoneNo")
+            item_id = request.form.get("item")
+            discount = request.form.get("discount")
+            quantity = request.form.get("item-weight")
+            item = db.execute("SELECT * FROM Item WHERE item_id = ?", item_id)
+            item = item[0]
+
+            totalPrice = request.form.get("total-price")
+            total = float(session["cart"]["totalAmount"])
+            total = total + float(totalPrice)
+            
+            cart_item = {
+                "item_id" : item_id,
+                "name" : item["itemname"],
+                "pricePerKG" : item["price"],
+                "quantity" : quantity,
+                "discount" : discount,
+                "totalPrice" : totalPrice
+            }
+
+            itemList = []
+            itemList = list(session["cart"]["cart_item"])
+            present = False
+            for tempItem in itemList:
+                if tempItem["item_id"] == item_id:
+                    tempItem["quantity"] = int(tempItem["quantity"]) + int(quantity)
+                    tempItem["totalPrice"] = float(tempItem["totalPrice"]) + float(totalPrice)
+                    tempItem["discount"] = float((float(tempItem["discount"]) + float(discount)) / 2.0  )
+                    present = True    
+            
+            if not present:
+                itemList.append(cart_item)
+
+            session["cart"]["cart_item"] = itemList
+            session["cart"]["totalAmount"] = total
+
+            items = db.execute("SELECT * FROM Item")
+            return render_template("billGen.html", items = items)
+        elif request.form["billGen-button"] == "Print":
+            print("Print")
+            html = render_template("billLayout.html")
+            pdf = pdfkit.from_string(html, options={"enable-local-file-access": ""})
+            response = make_response(pdf)
+            customer_name = session["cart"]["customer_name"]
+            if customer_name is None:
+                customer_name = ""
+            response.headers["Content-Type"] = "application/pdf"
+            response.headers["Content-Disposition"] = "inline; filename=" + customer_name +".pdf"
+            return response
+            
         return render_template("billGen.html")
     else:
-        return render_template("billGen.html")
+        items = db.execute("SELECT * FROM Item")
+        return render_template("billGen.html", items = items)
+
+@app.route("/getItem")
+def getItem():
+    item_id = request.args.get("item")
+    items = db.execute("SELECT * FROM Item WHERE item_id = ?", item_id)
+    print(json.dumps(items))
+    return json.dumps(items[0])
+
+@app.route("/deleteItem")
+def deleteItem():
+    itemList = session["cart"]["cart_item"]
+    item_id = request.args.get("item")
+    tempitem = []
+    total = 0
+    for item in itemList:
+        if item["item_id"] != item_id:
+            tempitem.append(item)
+            total = total + float(item["totalPrice"])
+    
+    session["cart"]["cart_item"] = tempitem
+    session["cart"]["totalAmount"] = total
+
+    return redirect("/billGen")
+
+@app.route("/billLayout")
+def billLayout():
+    cart = session["cart"]["cart_item"]
+    db.execute(
+        "INSERT INTO transactions(user_id, transaction_towards, amount, reason, withdrawal_or_deposit) VALUES (?, ?, ?, ?, ?)",
+            session["user_id"], session["cart"]["customer_name"], session["cart"]["totalAmount"], "Puchase", "deposit")
+
+    for item in session["cart"]["cart_item"]:
+        db.execute("UPDATE Item SET quantity = quantity - ? WHERE item_id = ?", int(item["quantity"]), int(item["item_id"]))
+    session["cart"] = {
+        "customer_name" : "",
+        "phone_number" : "",
+        "cart_item" : [], 
+        "totalAmount" : 0,
+        "printed" : ""
+    }
+    return render_template("billLayout.html", cart = cart)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -84,10 +173,7 @@ def login():
         # Remember which user has logged in
         session["user_id"] = rows[0]["person_id"]
         session["user_name"] = request.form.get("username")
-
         session["today_date"] = date.today()
-
-
 
         # Redirect user to home page
         return redirect("/")
