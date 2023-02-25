@@ -7,8 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import date
 from cs50 import SQL
 import json
-import pdfkit
-import webbrowser
+import math
 
 
 app = Flask(__name__)
@@ -88,19 +87,7 @@ def billGen():
 
             items = db.execute("SELECT * FROM Item")
             return render_template("billGen.html", items = items)
-        elif request.form["billGen-button"] == "Print":
-            print("Print")
-            html = render_template("billLayout.html")
-            pdf = pdfkit.from_string(html, options={"enable-local-file-access": ""})
-            response = make_response(pdf)
-            customer_name = session["cart"]["customer_name"]
-            if customer_name is None:
-                customer_name = ""
-            response.headers["Content-Type"] = "application/pdf"
-            response.headers["Content-Disposition"] = "inline; filename=" + customer_name +".pdf"
-            return response
-            
-        return render_template("billGen.html")
+        
     else:
         items = db.execute("SELECT * FROM Item")
         return render_template("billGen.html", items = items)
@@ -109,7 +96,6 @@ def billGen():
 def getItem():
     item_id = request.args.get("item")
     items = db.execute("SELECT * FROM Item WHERE item_id = ?", item_id)
-    print(json.dumps(items))
     return json.dumps(items[0])
 
 @app.route("/deleteItem")
@@ -134,6 +120,9 @@ def billLayout():
     db.execute(
         "INSERT INTO transactions(user_id, transaction_towards, amount, reason, withdrawal_or_deposit) VALUES (?, ?, ?, ?, ?)",
             session["user_id"], session["cart"]["customer_name"], session["cart"]["totalAmount"], "Puchase", "deposit")
+
+    for item in cart:
+        db.execute("INSERT INTO TodaysSoldItem (itemName, quantity) VALUES(?, ?)", item["name"], item["quantity"])
 
     for item in session["cart"]["cart_item"]:
         db.execute("UPDATE Item SET quantity = quantity - ? WHERE item_id = ?", int(item["quantity"]), int(item["item_id"]))
@@ -249,7 +238,6 @@ def additem():
         return redirect("/")
     else:
         category = db.execute("SELECT * from Category")
-        print(category)
         return render_template("additem.html" , category = category)
     
 
@@ -261,7 +249,6 @@ def addworker():
         address = request.form.get("address")
         salary = request.form.get("salary")
         workers = db.execute("SELECT * from Worker")
-        print(workers)
         db.execute("INSERT INTO Worker(fullname,phone,address,salary) VALUES(?,?,?,?)" , fullname , phone ,address, salary)
         return redirect("/")
         
@@ -280,5 +267,55 @@ def withdrawmoney():
         return render_template("moneywithdrawal.html")
 
 
+@app.route("/purchaseDesktop" , methods=["GET", "POST"])
+def purchaseDesktop():
+    items = db.execute("SELECT DISTINCT(itemname) as item_name, SUM(quantity) as total_quantity FROM TodaysSoldItem WHERE tran_date = CURRENT_DATE GROUP BY itemname")
+    
+    productWiseData = []
+    productWiseDataLabels = []
+    total = 0
+    for item in items:
+        total = total + int(item["total_quantity"])
 
+    for item in items:
+        productWiseDataLabels.append(item["item_name"])
+        productWiseData.append(math.ceil( int((int(item["total_quantity"]) / total) * 100)))
 
+    dates = db.execute("SELECT DISTINCT(tran_date) AS tran_date FROM TodaysSoldItem WHERE tran_date >= date('now', '-7 days')")
+    top_items = db.execute("SELECT itemName, SUM(quantity) AS total_quantity FROM TodaysSoldItem GROUP BY itemName HAVING tran_date >= date('now', '-7 days') ORDER BY total_quantity LIMIT 5")
+
+    list_dates = []
+
+    for date in dates:
+        list_dates.append(date["tran_date"])
+
+    data = []
+
+    for item in top_items:
+        temp_Item = {
+            "name" : "",
+            "data" : []
+        }
+        data.append(temp_Item)
+
+    count = 0
+    print(top_items)
+    for item in top_items:
+        data[count]["name"] = item["itemName"]
+        for date in dates:
+            tempList = data[count]["data"]
+            temp = db.execute("SELECT SUM(quantity) AS quantity FROM TodaysSoldItem WHERE itemName = ? and tran_date = ?", item["itemName"], date["tran_date"])
+            if temp[0]["quantity"] is None or len(temp) == 0:
+                tempList.append(0)
+            else:
+                tempList.append(int(temp[0]["quantity"]))
+            data[count]["data"] = tempList
+        count += 1
+
+    query = str("SELECT p.firstname || ' ' || p.lastname as username, tran.transaction_towards, tran.amount, tran.transaction_time, tran.reason, tran.withdrawal_or_deposit FROM credentials c JOIN Person p JOIN transactions tran ON c.person_id = p.person_id AND tran.user_id = p.person_id WHERE tran.transaction_time >= CURRENT_DATE")
+    transactions = db.execute(query)
+    total = 0
+    for transaction in transactions:
+        total += int(transaction["amount"])
+
+    return render_template("purchaseDesktop.html", productWiseData = json.dumps(productWiseData), productWiseDataLabels = json.dumps(productWiseDataLabels), pastSevenproductWiseData = json.dumps(data), dates = json.dumps(list_dates), transactions = transactions, total_amount = total)
