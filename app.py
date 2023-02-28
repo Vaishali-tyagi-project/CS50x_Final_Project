@@ -1,12 +1,13 @@
 from flask import Flask, render_template, session
 from flask_session import Session
 import re
-from flask import Flask, render_template, session, request, redirect
+from flask import Flask, render_template, session, request, redirect, make_response
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import date
 from cs50 import SQL
-
+import json
+import math
 
 
 app = Flask(__name__)
@@ -24,38 +25,115 @@ Session(app)
 def index():
     
     session["Admin"] = 1
-    item = dict({
-        "name" : "Namkeen",
-        "pricePerKG" : 200,
-        "quantity" : 2,
-        "discount" : 10,
-        "totalPrice" : (200 * 2) - ( 10 * (200 * 2) * 0.01)
-    })
-    list_item = []
-    list_item.append(item)
-
     session["cart"] = {
-        "customer_name" : "Vaishali",
-        "phone_number" : "9876543210",
-        "cart_item" : list_item 
+        "customer_name" : "",
+        "phone_number" : "",
+        "cart_item" : [], 
+        "totalAmount" : 0,
+        "printed" : ""
     }
     
     return render_template("index.html")
 
 @app.route("/billGen", methods=["GET", "POST"])
 def billGen():
+    if session["cart"]["printed"] == "printed":
+        session["cart"] = {
+            "customer_name" : "",
+            "phone_number" : "",
+            "cart_item" : [], 
+            "totalAmount" : 0,
+            "printed" : ""
+        }
     if request.method == 'POST':
         if request.form["billGen-button"] == "Add Item":
             print("Add item")
-            session["customer_name"] = request.form.get("customer-name")
-            session["customer_name"] = request.form.get("customer-phoneNo")
-        elif request.form["billGen-button"] == "Edit":
-            print("Edit")
-        elif request.form["billGen-button"] == "Delete":
-            print("Delete")
-        return render_template("billGen.html")
+            session["cart"]["customer_name"] = request.form.get("customer-name")
+            session["cart"]["phone_number"] = request.form.get("customer-phoneNo")
+            item_id = request.form.get("item")
+            discount = request.form.get("discount")
+            quantity = request.form.get("item-weight")
+            item = db.execute("SELECT * FROM Item WHERE item_id = ?", item_id)
+            item = item[0]
+
+            totalPrice = request.form.get("total-price")
+            total = float(session["cart"]["totalAmount"])
+            total = total + float(totalPrice)
+            
+            cart_item = {
+                "item_id" : item_id,
+                "name" : item["itemname"],
+                "pricePerKG" : item["price"],
+                "quantity" : quantity,
+                "discount" : discount,
+                "totalPrice" : totalPrice
+            }
+
+            itemList = []
+            itemList = list(session["cart"]["cart_item"])
+            present = False
+            for tempItem in itemList:
+                if tempItem["item_id"] == item_id:
+                    tempItem["quantity"] = int(tempItem["quantity"]) + int(quantity)
+                    tempItem["totalPrice"] = float(tempItem["totalPrice"]) + float(totalPrice)
+                    tempItem["discount"] = float((float(tempItem["discount"]) + float(discount)) / 2.0  )
+                    present = True    
+            
+            if not present:
+                itemList.append(cart_item)
+
+            session["cart"]["cart_item"] = itemList
+            session["cart"]["totalAmount"] = total
+
+            items = db.execute("SELECT * FROM Item")
+            return render_template("billGen.html", items = items)
+        
     else:
-        return render_template("billGen.html")
+        items = db.execute("SELECT * FROM Item")
+        return render_template("billGen.html", items = items)
+
+@app.route("/getItem")
+def getItem():
+    item_id = request.args.get("item")
+    items = db.execute("SELECT * FROM Item WHERE item_id = ?", item_id)
+    return json.dumps(items[0])
+
+@app.route("/deleteItem")
+def deleteItem():
+    itemList = session["cart"]["cart_item"]
+    item_id = request.args.get("item")
+    tempitem = []
+    total = 0
+    for item in itemList:
+        if item["item_id"] != item_id:
+            tempitem.append(item)
+            total = total + float(item["totalPrice"])
+    
+    session["cart"]["cart_item"] = tempitem
+    session["cart"]["totalAmount"] = total
+
+    return redirect("/billGen")
+
+@app.route("/billLayout")
+def billLayout():
+    cart = session["cart"]["cart_item"]
+    db.execute(
+        "INSERT INTO transactions(user_id, transaction_towards, amount, reason, withdrawal_or_deposit) VALUES (?, ?, ?, ?, ?)",
+            session["user_id"], session["cart"]["customer_name"], session["cart"]["totalAmount"], "Puchase", "deposit")
+
+    for item in cart:
+        db.execute("INSERT INTO TodaysSoldItem (itemName, quantity) VALUES(?, ?)", item["name"], item["quantity"])
+
+    for item in session["cart"]["cart_item"]:
+        db.execute("UPDATE Item SET quantity = quantity - ? WHERE item_id = ?", int(item["quantity"]), int(item["item_id"]))
+    session["cart"] = {
+        "customer_name" : "",
+        "phone_number" : "",
+        "cart_item" : [], 
+        "totalAmount" : 0,
+        "printed" : ""
+    }
+    return render_template("billLayout.html", cart = cart)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -84,10 +162,7 @@ def login():
         # Remember which user has logged in
         session["user_id"] = rows[0]["person_id"]
         session["user_name"] = request.form.get("username")
-
         session["today_date"] = date.today()
-
-
 
         # Redirect user to home page
         return redirect("/")
@@ -187,7 +262,6 @@ def addworker():
         address = request.form.get("address")
         salary = request.form.get("salary")
         workers = db.execute("SELECT * from Worker")
-        print(workers)
         db.execute("INSERT INTO Worker(fullname,phone,address,salary) VALUES(?,?,?,?)" , fullname , phone ,address, salary)
         return redirect("/")
         
@@ -206,5 +280,55 @@ def withdrawmoney():
         return render_template("moneywithdrawal.html")
 
 
+@app.route("/purchaseDesktop" , methods=["GET", "POST"])
+def purchaseDesktop():
+    items = db.execute("SELECT DISTINCT(itemname) as item_name, SUM(quantity) as total_quantity FROM TodaysSoldItem WHERE tran_date = CURRENT_DATE GROUP BY itemname")
+    
+    productWiseData = []
+    productWiseDataLabels = []
+    total = 0
+    for item in items:
+        total = total + int(item["total_quantity"])
 
+    for item in items:
+        productWiseDataLabels.append(item["item_name"])
+        productWiseData.append(math.ceil( int((int(item["total_quantity"]) / total) * 100)))
 
+    dates = db.execute("SELECT DISTINCT(tran_date) AS tran_date FROM TodaysSoldItem WHERE tran_date >= date('now', '-7 days')")
+    top_items = db.execute("SELECT itemName, SUM(quantity) AS total_quantity FROM TodaysSoldItem GROUP BY itemName HAVING tran_date >= date('now', '-7 days') ORDER BY total_quantity LIMIT 5")
+
+    list_dates = []
+
+    for date in dates:
+        list_dates.append(date["tran_date"])
+
+    data = []
+
+    for item in top_items:
+        temp_Item = {
+            "name" : "",
+            "data" : []
+        }
+        data.append(temp_Item)
+
+    count = 0
+    print(top_items)
+    for item in top_items:
+        data[count]["name"] = item["itemName"]
+        for date in dates:
+            tempList = data[count]["data"]
+            temp = db.execute("SELECT SUM(quantity) AS quantity FROM TodaysSoldItem WHERE itemName = ? and tran_date = ?", item["itemName"], date["tran_date"])
+            if temp[0]["quantity"] is None or len(temp) == 0:
+                tempList.append(0)
+            else:
+                tempList.append(int(temp[0]["quantity"]))
+            data[count]["data"] = tempList
+        count += 1
+
+    query = str("SELECT p.firstname || ' ' || p.lastname as username, tran.transaction_towards, tran.amount, tran.transaction_time, tran.reason, tran.withdrawal_or_deposit FROM credentials c JOIN Person p JOIN transactions tran ON c.person_id = p.person_id AND tran.user_id = p.person_id WHERE tran.transaction_time >= CURRENT_DATE")
+    transactions = db.execute(query)
+    total = 0
+    for transaction in transactions:
+        total += int(transaction["amount"])
+
+    return render_template("purchaseDesktop.html", productWiseData = json.dumps(productWiseData), productWiseDataLabels = json.dumps(productWiseDataLabels), pastSevenproductWiseData = json.dumps(data), dates = json.dumps(list_dates), transactions = transactions, total_amount = total)
