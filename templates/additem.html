@@ -41,8 +41,7 @@ Add Item
             </div>
             <div class="col-md-5 item">
                 <label class="form-check-label">Category</label>
-                <select class="form-select" aria-label=" Item Category" id="select_id" name="category_id"
-                    onchange="isother();">
+                <select class="form-select" aria-label=" Item Category" id="select_id" name="category_id" onchange="isother();">
                     <option selected disabled> Open this select menu</option>
                     {% for name in category %}
                     <option value="{{name.category_id}}">{{name.category_name}}</option>
