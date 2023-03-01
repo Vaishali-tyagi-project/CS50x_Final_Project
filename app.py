@@ -312,7 +312,9 @@ def withdrawmoney():
         amount = request.form.get("amount")
         reason = request.form.get("reason")
         transaction_towards = request.form.get("towhom")
-        db.execute("INSERT INTO transactions(user_id, transaction_towards, person_phone_no, amount, reason, withdrawal_or_deposit) VALUES(?,?,?,?,?,?)" , session["user_id"] ,transaction_towards, "9876543210" , (amount * (-1)) ,reason, "withdrawal")
+        phone = request.form.get("phone")
+        print(phone)
+        db.execute("INSERT INTO transactions(user_id, transaction_towards, person_phone_no, amount, reason, withdrawal_or_deposit) VALUES(?,?,?,?,?,?)" , session["user_id"] ,transaction_towards, phone , (amount * (-1)) ,reason, "withdrawal")
         return redirect("/")
     else:
         return render_template("moneywithdrawal.html")
