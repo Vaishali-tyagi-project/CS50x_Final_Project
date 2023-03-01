@@ -221,7 +221,6 @@ def register():
         phone = request.form.get("phone")
         isadmin = request.form.get("isadmin")
         person = (firstname,lastname,email,phone,isadmin)
-        print(person)
         if isadmin == '1':
             db.execute("INSERT INTO Person (firstname ,lastname,email_id,phone_number,isAdmin) VALUES (?,?,?,?,?)" , firstname,lastname,email,phone,isadmin)
         else:
@@ -269,7 +268,6 @@ def additem():
             if (itemname.upper()) == str(i["itemname"]).upper():
                 item_id = (i["item_id"])
                 db.execute("UPDATE Item  SET price = ? , itemname = ? , quantity = ? , category_id = ? , retail_discount = ?,wholesale_discount = ?  where item_id = ? " , price , itemname,quantity,category_id,retail_discount,wholesale_discount, item_id)
-                print(i["itemname"])
                 return redirect("/")
                        
         
@@ -313,8 +311,7 @@ def withdrawmoney():
         reason = request.form.get("reason")
         transaction_towards = request.form.get("towhom")
         phone = request.form.get("phone")
-        print(phone)
-        db.execute("INSERT INTO transactions(user_id, transaction_towards, person_phone_no, amount, reason, withdrawal_or_deposit) VALUES(?,?,?,?,?,?)" , session["user_id"] ,transaction_towards, phone , (amount * (-1)) ,reason, "withdrawal")
+        db.execute("INSERT INTO transactions(user_id, transaction_towards, person_phone_no, amount, reason, withdrawal_or_deposit) VALUES(?,?,?,?,?,?)" , session["user_id"] ,transaction_towards, phone , (int(amount) * (-1)) ,reason, "withdrawal")
         return redirect("/")
     else:
         return render_template("moneywithdrawal.html")
