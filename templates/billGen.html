@@ -28,7 +28,7 @@
                     </div>
                     <div class="col-md-6 form-group">
                         <label for="customer-phoneNo">Customer Phone No</label><br>
-                        <input class="form-control" autocomplete="off" id = "customer-phoneNo" name = "customer-phoneNo" placeholder="Customer Phone" type="text" value='{{session["cart"]["phone_number"]}}'>
+                        <input class="form-control" autocomplete="off" id = "customer-phoneNo" name = "customer-phoneNo" placeholder="Customer Phone" type="text" value='{{session["cart"]["phone_number"]}}' pattern="[789][0-9]{9}">
                     </div>
                 </div>
                 <div class = "row">
@@ -43,7 +43,7 @@
                     </div>
                     <div class="col-md-6 form-group">
                         <label for="item-weight">Item Weight</label><br>
-                        <input class="form-control" autocomplete="off" id = "item-weight" name = "item-weight" placeholder="Item Weight" type="number" onfocusout = "setTotalPrice();">
+                        <input class="form-control" autocomplete="off" id = "item-weight" name = "item-weight" placeholder="Item Weight" type="number" min="0" onfocusout = "setTotalPrice();">
                     </div>
                 </div>
                 <div class = "row">
@@ -81,50 +81,7 @@
                     </div>
                 </div>
                 <script>
-                    async function setFields()
-                    {
-                        let item = document.getElementById("item");
-                        let response = await fetch('/getItem?item='+item.value);
-                        shows = await response.json();
-                        const entries = Object.values(shows); 
-                        let pricePerKg = document.getElementById("price-perKg");
-                        pricePerKg.value = entries[1];
-                        let saleType = document.getElementById("sale-type");
-                        let discount = document.getElementById("discount");
-                        if (saleType.value == "retail")
-                        {
-                            discount.value = entries[5];
-                        }
-                        else
-                        {
-                            discount.value = entries[6];
-                        }
-                        
-                        let toalPrice = document.getElementById("total-price").value;
-
-                        if (toalPrice)
-                        {
-                            setTotalPrice();
-                        }
-                    }
-
-                    function setTotalPrice()
-                    {
-                        let pricePerKg = parseFloat(document.getElementById("price-perKg").value);
-                        let discount = parseFloat(document.getElementById("discount").value);
-                        let amount = parseFloat(document.getElementById("item-weight").value);
-
-                        let discountPrice = parseFloat(pricePerKg * (parseFloat(discount / 100)));
-                        let totalPrice = pricePerKg - discountPrice;
-                        document.getElementById("total-price").value = (amount * totalPrice);
-                    }
-
-                    function printInvoice()
-                    {
-                        let win = window.open("");
-                        win.location.href = '/billLayout';
-                        win.getElementById('billLayout-body').print();
-                    }
+                    
                     
                 </script>
                 <table class="table table-bordered billGen-table" id = "billGen-table">
