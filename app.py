@@ -444,3 +444,16 @@ def changePassword():
     else:
         users = db.execute("SELECT c.person_id, c.username, c.credential_id, p.firstname || ' ' || p.lastname as fullName FROM Credentials c JOIN Person p ON c.person_id = p.person_id")
         return render_template("/changePassword.html", users = users, json_user = json.dumps(users))
+
+
+@app.route('/addQuantity', methods = ["GET", "POST"])
+@login_required
+def addQuantity():
+    if request.method == "POST":
+        item_id = request.form.get("item_id")
+        quantity = request.form.get("quantity")
+        db.execute("UPDATE Item SET quantity = ? WHERE item_id = ?", int(quantity), int(item_id))
+        return redirect("/")
+    else:
+        items = db.execute("SELECT i.item_id, i.price, i.itemname, i.quantity, i.retail_discount, i.wholesale_discount, c.category_name FROM Category c JOIN Item i ON i.category_id = c.category_id")
+        return render_template("/addQuantity.html", items = items, json_items = json.dumps(items))
