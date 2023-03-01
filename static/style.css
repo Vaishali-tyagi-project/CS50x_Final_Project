@@ -184,3 +184,56 @@ footer
 {
     background-color: azure;
 }
+
+.sale-body
+{
+    padding-left: 10%;   
+}
+
+.inner-sale-body
+{
+    background-color: white !important;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    width:90% ;
+    border-radius: 5px;
+}
+
+.sale-table
+{
+    padding-left: 3%;
+    padding-right: 3%;
+}
+
+.history-body
+{
+    margin-left: 5%;
+    background-color: white !important;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    width:90% ;
+    border-radius: 5px;
+}
+
+.history-table
+{
+    padding-left: 3%;
+    padding-right: 3%;
+}
+
+.history-inner-body
+{
+    padding-left: 5%;
+    padding-right: 5%;
+}
+
+.changePassword-inner-body
+{
+    background-color: white !important;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    width:60% ;
+    border-radius: 5px;
+    margin-left: 20%;
+    padding-top: 1%;
+    padding-left: 5%;
+    padding-right: 5%;
+    padding-bottom: 3%;
+}

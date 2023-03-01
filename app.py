@@ -8,34 +8,39 @@ from datetime import date
 from cs50 import SQL
 import json
 import math
+from helpers import login_required, admin_access_required
 
 
 app = Flask(__name__)
 
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
-app.secret_key = 'super secret key'
+Session(app)
 
 db = SQL("sqlite:///final-project.db")
 
-
-Session(app)
-
 @app.route("/")
+@login_required
+@admin_access_required
 def index():
+
+    total_sale = db.execute("SELECT SUM(amount) AS total_sale FROM transactions WHERE transaction_time >= CURRENT_DATE AND withdrawal_or_deposit = 'deposit'")
+
+    if total_sale[0]["total_sale"] is not None:
+        total_sale = total_sale[0]["total_sale"]
+    else:
+        total_sale = 0
     
-    session["Admin"] = 1
-    session["cart"] = {
-        "customer_name" : "",
-        "phone_number" : "",
-        "cart_item" : [], 
-        "totalAmount" : 0,
-        "printed" : ""
-    }
-    
-    return render_template("index.html")
+    updates = db.execute("SELECT * FROM transactions WHERE transaction_time >= CURRENT_DATE and withdrawal_or_deposit = 'withdrawal' order by amount LIMIT 5")
+    list_updates = []
+    for update in updates:
+        update ="Paid " + str((-1) * update["amount"]) + " Rupees to " +  update["transaction_towards"] + " for " + update["reason"]
+        list_updates.append(update)
+
+    return render_template("index.html",total_sale = total_sale, list_updates = list_updates)
 
 @app.route("/billGen", methods=["GET", "POST"])
+@login_required
 def billGen():
     if session["cart"]["printed"] == "printed":
         session["cart"] = {
@@ -45,6 +50,7 @@ def billGen():
             "totalAmount" : 0,
             "printed" : ""
         }
+
     if request.method == 'POST':
         if request.form["billGen-button"] == "Add Item":
             print("Add item")
@@ -92,13 +98,17 @@ def billGen():
         items = db.execute("SELECT * FROM Item")
         return render_template("billGen.html", items = items)
 
+
 @app.route("/getItem")
+@login_required
 def getItem():
     item_id = request.args.get("item")
     items = db.execute("SELECT * FROM Item WHERE item_id = ?", item_id)
     return json.dumps(items[0])
 
+
 @app.route("/deleteItem")
+@login_required
 def deleteItem():
     itemList = session["cart"]["cart_item"]
     item_id = request.args.get("item")
@@ -115,14 +125,17 @@ def deleteItem():
     return redirect("/billGen")
 
 @app.route("/billLayout")
+@login_required
 def billLayout():
     cart = session["cart"]["cart_item"]
+    totalAmount = session["cart"]["totalAmount"]
     db.execute(
-        "INSERT INTO transactions(user_id, transaction_towards, amount, reason, withdrawal_or_deposit) VALUES (?, ?, ?, ?, ?)",
-            session["user_id"], session["cart"]["customer_name"], session["cart"]["totalAmount"], "Puchase", "deposit")
-
+        "INSERT INTO transactions(user_id, transaction_towards, person_phone_no , amount, reason, withdrawal_or_deposit) VALUES (?, ?, ?, ?, ?, ?)",
+            session["user_id"], session["cart"]["customer_name"], session["cart"]["phone_number"], session["cart"]["totalAmount"], "Purchase", "deposit")
+    transaction_id = db.execute("SELECT max(transaction_id) AS transaction_id FROM transactions")
+    transaction_id = transaction_id[0]["transaction_id"]
     for item in cart:
-        db.execute("INSERT INTO TodaysSoldItem (itemName, quantity) VALUES(?, ?)", item["name"], item["quantity"])
+        db.execute("INSERT INTO TodaysSoldItem (transaction_id, itemName, quantity) VALUES(?, ?, ?)", int(transaction_id), item["name"], item["quantity"])
 
     for item in session["cart"]["cart_item"]:
         db.execute("UPDATE Item SET quantity = quantity - ? WHERE item_id = ?", int(item["quantity"]), int(item["item_id"]))
@@ -132,8 +145,8 @@ def billLayout():
         "cart_item" : [], 
         "totalAmount" : 0,
         "printed" : ""
-    }
-    return render_template("billLayout.html", cart = cart)
+    }   
+    return render_template("billLayout.html", cart = cart, totalAmount = totalAmount)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -163,6 +176,18 @@ def login():
         session["user_id"] = rows[0]["person_id"]
         session["user_name"] = request.form.get("username")
         session["today_date"] = date.today()
+        
+        person = db.execute("SELECT isAdmin FROM Person WHERE person_id = ?", rows[0]["person_id"])
+        if person[0]["isAdmin"] == 1 :
+            session["Admin"] = person[0]["isAdmin"]
+        
+        session["cart"] = {
+            "customer_name" : "",
+            "phone_number" : "",
+            "cart_item" : [], 
+            "totalAmount" : 0,
+            "printed" : ""
+        }
 
         # Redirect user to home page
         return redirect("/")
@@ -180,9 +205,12 @@ def logout():
     session.clear()
 
     # Redirect user to login form
-    return redirect("/")
+    return redirect("/login")
+
 
 @app.route("/register", methods=["GET", "POST"])
+@login_required
+@admin_access_required
 def register():
     """Register user"""
     
@@ -208,7 +236,10 @@ def register():
     else:
         return render_template("register.html")
     
+
 @app.route("/credentials", methods=["GET", "POST"])
+@login_required
+@admin_access_required
 def credentials():
     if request.method == "POST":
         person_id = request.form.get("person_id")
@@ -218,7 +249,10 @@ def credentials():
         return render_template("login.html")
     
 
+
 @app.route("/additem" , methods=["GET", "POST"])
+@login_required
+@admin_access_required
 def additem():
     if request.method == "POST":
         itemname = request.form.get("itemname")
@@ -255,6 +289,8 @@ def additem():
     
 
 @app.route("/addworker" , methods=["GET", "POST"])
+@login_required
+@admin_access_required
 def addworker():
     if request.method == "POST":
         fullname = request.form.get("fullname")
@@ -267,19 +303,24 @@ def addworker():
         
     return render_template("workers.html")
 
+
 @app.route("/moneywithdrawal" , methods=["GET", "POST"])
+@login_required
 def withdrawmoney():
     if request.method == "POST":
         transaction_towards = request.form.get("towhom")
         amount = request.form.get("amount")
-        reason = request.form.get("reason")   
-        db.execute("INSERT INTO transactions(user_id,transaction_towards,amount,reason,withdrawal_or_deposit) VALUES(?,?,?,?,?)" , session["user_id"] ,transaction_towards, amount ,reason, "withdrawal")
+        reason = request.form.get("reason")
+        transaction_towards = request.form.get("towhom")
+        db.execute("INSERT INTO transactions(user_id, transaction_towards, person_phone_no, amount, reason, withdrawal_or_deposit) VALUES(?,?,?,?,?,?)" , session["user_id"] ,transaction_towards, "9876543210" , (amount * (-1)) ,reason, "withdrawal")
         return redirect("/")
     else:
         return render_template("moneywithdrawal.html")
 
 
 @app.route("/purchaseDesktop" , methods=["GET", "POST"])
+@login_required
+@admin_access_required
 def purchaseDesktop():
     items = db.execute("SELECT DISTINCT(itemname) as item_name, SUM(quantity) as total_quantity FROM TodaysSoldItem WHERE tran_date = CURRENT_DATE GROUP BY itemname")
     
@@ -331,3 +372,72 @@ def purchaseDesktop():
         total += int(transaction["amount"])
 
     return render_template("purchaseDesktop.html", productWiseData = json.dumps(productWiseData), productWiseDataLabels = json.dumps(productWiseDataLabels), pastSevenproductWiseData = json.dumps(data), dates = json.dumps(list_dates), transactions = transactions, total_amount = total)
+
+
+@app.route("/sale", methods = ["GET", "POST"])
+@login_required
+@admin_access_required
+def sale():
+    if request.method == "POST":
+        selected_date = request.form.get("sale-date")
+        transactions = db.execute(" SELECT p.firstname || ' ' || p.lastname as fullName, tran.transaction_id , tran.transaction_time , tran.transaction_towards, tran.person_phone_no, tran.amount FROM credentials c JOIN Person p JOIN transactions tran ON c.person_id = p.person_id AND tran.user_id = p.person_id WHERE tran.transaction_time LIKE ?", "%"+str(selected_date)+"%")
+        total_amount = 0
+        for transaction in transactions:
+            list_item = ""
+            sold_item = db.execute("SELECT itemName FROM TodaysSoldItem WHERE transaction_id = ?", transaction["transaction_id"])
+            for item in sold_item:
+                if list_item == "":
+                    list_item = str(item["itemName"])
+                else:
+                    list_item = str(list_item +", " + str(item["itemName"]))
+            total_amount = total_amount + int(transaction["amount"])
+            
+            transaction["list_item"] = str(list_item)
+
+        return render_template("sale.html", transactions = transactions, total_amount = total_amount)
+    else:
+        return render_template("sale.html", transactions = [], total_amount = 0)
+
+
+@app.route("/history")
+@login_required
+def history():
+    
+    transactions = db.execute(" SELECT p.firstname || ' ' || p.lastname as fullName, tran.transaction_id , tran.transaction_time , tran.transaction_towards, tran.person_phone_no, tran.amount FROM credentials c JOIN Person p JOIN transactions tran ON c.person_id = p.person_id AND tran.user_id = p.person_id WHERE tran.transaction_time >= CURRENT_DATE AND tran.user_id = ?", session["user_id"])
+    total_amount = 0
+    for transaction in transactions:
+        list_item = ""
+        sold_item = db.execute("SELECT itemName FROM TodaysSoldItem WHERE transaction_id = ?", transaction["transaction_id"])
+        for item in sold_item:
+            if list_item == "":
+                list_item = str(item["itemName"])
+            else:
+                list_item = str(list_item +", " + str(item["itemName"]))
+        total_amount = total_amount + float(transaction["amount"])
+        
+        transaction["list_item"] = str(list_item)
+
+    return render_template("history.html", transactions = transactions, total_amount = total_amount)
+
+
+@app.route("/changePassword", methods = ["GET", "POST"])
+@login_required
+@admin_access_required
+def changePassword():
+    if request.method == "POST":
+        cred_id = request.form.get("cred_id")
+        updated_pass = request.form.get("changePass")
+        rePass = request.form.get("re-changePass")
+
+        if cred_id is None or cred_id == "0":
+            return render_template(" /error ", "Please select user", "400")
+
+        if rePass != updated_pass or updated_pass is None or rePass is None:
+            return render_template("/error", "Password doesn't match", "400")
+        
+        db.execute("UPDATE Credentials SET password = ? WHERE credential_id = ?", rePass, cred_id)
+        users = db.execute("SELECT c.person_id, c.username, c.credential_id, p.firstname || ' ' || p.lastname as fullName FROM Credentials c JOIN Person p ON c.person_id = p.person_id")
+        return redirect("/")
+    else:
+        users = db.execute("SELECT c.person_id, c.username, c.credential_id, p.firstname || ' ' || p.lastname as fullName FROM Credentials c JOIN Person p ON c.person_id = p.person_id")
+        return render_template("/changePassword.html", users = users, json_user = json.dumps(users))
