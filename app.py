@@ -156,7 +156,7 @@ def login():
         # Query database for username
         rows = db.execute("SELECT * FROM Credentials WHERE username = ?" ,request.form.get("username"))
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not  (rows[0]["password"]==  request.form.get("password")):
+        if len(rows) != 1 or not  check_password_hash(rows[0]["password"], request.form.get("password")):
             return render_template( "error.html" , errormsg = "invalid username and/or password", code = 403)
 
         # Remember which user has logged in
@@ -214,7 +214,7 @@ def credentials():
         person_id = request.form.get("person_id")
         username = request.form.get("username")
         password = request.form.get("password")
-        db.execute("INSERT INTO Credentials(person_id,username,password) VALUES(?,?,?)" , person_id , username , password)
+        db.execute("INSERT INTO Credentials(person_id,username,password) VALUES(?,?,?)" , person_id , username , generate_password_hash(password))
         return render_template("login.html")
     
 
@@ -227,6 +227,19 @@ def additem():
         category_id = request.form.get("category_id")
         retail_discount = request.form.get("retail_discount")
         wholesale_discount = request.form.get("wholesale_discount")
+        item = db.execute("SELECT * from Item")
+        for i in item:
+            print(itemname.upper())
+            print(str(i["itemname"]).upper())
+
+            if (itemname.upper()) == str(i["itemname"]).upper():
+                item_id = (i["item_id"])
+                db.execute("UPDATE Item  SET price = ? , itemname = ? , quantity = ? , category_id = ? , retail_discount = ?,wholesale_discount = ?  where item_id = ? " , price , itemname,quantity,category_id,retail_discount,wholesale_discount, item_id)
+                print(i["itemname"])
+                return redirect("/")
+                       
+        
+
         if category_id == "0":
             new_category = request.form.get("newcategory")
             db.execute("INSERT INTO Category(category_name) VALUES(?)" , new_category)
