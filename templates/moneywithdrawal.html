@@ -7,6 +7,9 @@ Add Item
 {% block main %}
 <form action="/moneywithdrawal" method="post">
     <div class="container moneywithdrawal_body">
+        <div class = "row pb-0">
+            <div class="row billGen-h2"><h2>Withdraw Money</h2></div>
+        </div>
         <div class="row">
             <div class="col-md-5  item">
                 <label class="form-check-label">Withdrawer Name</label>
@@ -27,6 +30,12 @@ Add Item
             <div class="col-md-5 item">
                 <label class="form-check-label">Reason</label>
                 <input type="text" class="form-control" id="reason" name="reason" placeholder="Reason of Withdrawal" required />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-5 item">
+                <label class="form-check-label">Phone</label>
+                <input type="tel" class="form-control" id="phone" name="phone" placeholder="Phone Number" required />
             </div>
         </div>
         
