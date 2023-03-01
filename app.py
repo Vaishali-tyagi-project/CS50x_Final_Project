@@ -272,8 +272,7 @@ def withdrawmoney():
     if request.method == "POST":
         transaction_towards = request.form.get("towhom")
         amount = request.form.get("amount")
-        reason = request.form.get("reason")
-        transaction_towards = request.form.get("towhom")
+        reason = request.form.get("reason")   
         db.execute("INSERT INTO transactions(user_id,transaction_towards,amount,reason,withdrawal_or_deposit) VALUES(?,?,?,?,?)" , session["user_id"] ,transaction_towards, amount ,reason, "withdrawal")
         return redirect("/")
     else:
