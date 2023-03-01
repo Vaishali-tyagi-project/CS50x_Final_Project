@@ -16,7 +16,7 @@
                 <a href = "/addworker"> Worker Functionality </a>
             </div>
             <div class = "button-div col-md-2">
-                <a href = "#"> Today's Sale </a>
+                <a href = "/sale"> Sale </a>
             </div>
             <div class = "button-div col-md-2">
                 <a href = "/purchaseDesktop"> Profit Graph </a>
@@ -39,7 +39,11 @@
         <h4 class = "index-h4">Recent Updates</h4>
         <div class = "update-div">
             <ul>
-                <li class = "update-li"> Total Purchase till now: </li>
+                <li class = "update-li"> Total Purchase till now: {{ total_sale }}</li>
+            
+                {% for update in list_updates %}
+                <li class="update-li">{{ update }}</li>
+                {% endfor %}
             </ul>
         </div>
     </div>
