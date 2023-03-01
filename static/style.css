@@ -30,11 +30,13 @@ body
     margin-right: 10px;
     margin-left: 10px;
     padding: 10px;
+    background: #e7eceb;
 }
 
-.button-div :hover
+.button-div a:hover, .button-div:hover
 {
-    color: darkslategray;
+    color: white;
+    background: darkgray;
 }
 
 .button-div a
