@@ -33,6 +33,7 @@ def index():
     
     updates = db.execute("SELECT * FROM transactions WHERE transaction_time >= CURRENT_DATE and withdrawal_or_deposit = 'withdrawal' order by amount LIMIT 5")
     list_updates = []
+    print(updates)
     for update in updates:
         update ="Paid " + str((-1) * update["amount"]) + " Rupees to " +  update["transaction_towards"] + " for " + update["reason"]
         list_updates.append(update)
@@ -178,6 +179,7 @@ def login():
         session["today_date"] = date.today()
         
         person = db.execute("SELECT isAdmin FROM Person WHERE person_id = ?", rows[0]["person_id"])
+
         if person[0]["isAdmin"] == 1 :
             session["Admin"] = person[0]["isAdmin"]
         
@@ -312,7 +314,8 @@ def withdrawmoney():
         amount = request.form.get("amount")
         reason = request.form.get("reason")
         transaction_towards = request.form.get("towhom")
-        db.execute("INSERT INTO transactions(user_id, transaction_towards, person_phone_no, amount, reason, withdrawal_or_deposit) VALUES(?,?,?,?,?,?)" , session["user_id"] ,transaction_towards, "9876543210" , (amount * (-1)) ,reason, "withdrawal")
+        print(amount)
+        db.execute("INSERT INTO transactions(user_id, transaction_towards, person_phone_no, amount, reason, withdrawal_or_deposit) VALUES(?,?,?,?,?,?)" , session["user_id"] ,transaction_towards, "9876543210" , (int(amount) * (-1)) ,reason, "withdrawal")
         return redirect("/")
     else:
         return render_template("moneywithdrawal.html")
