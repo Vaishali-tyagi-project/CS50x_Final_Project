@@ -239,3 +239,16 @@ footer
     padding-right: 5%;
     padding-bottom: 3%;
 }
+.blue
+{
+    color: #F14555 ;
+    font-family: cursive;
+    font-weight: bold;
+    font-size: x-large;
+}
+.yellow
+{
+    color: #008275;
+    font-family: cursive;
+    font-weight: bold;
+}
