@@ -1,4 +1,5 @@
-# Final-Project-CS50x23
+# DukaanMate - 
+##Final-Project-CS50x23
 By: Vaishali Tyagi and Harmeet Singh
 
 DESCRIPTION:
