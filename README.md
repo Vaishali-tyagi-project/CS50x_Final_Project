@@ -1,5 +1,5 @@
 # DukaanMate - 
-##Final-Project-CS50x23
+## Final-Project-CS50x23
 By: Vaishali Tyagi and Harmeet Singh
 
 DESCRIPTION:
@@ -17,20 +17,4 @@ Total Purchase Desktop - Harmeet
 2.	Daily Total Purchase
 3.	Graph with Past 7 days of data
 Workers- Add person - Vaishali
-Workers Salary – Daily and monthly 
-
-
-
-
-
-
-
-
-
-
-
-TABLES 
-
-CREDENTIALS
-PERSON
-
+Workers Salary – Daily and monthly
