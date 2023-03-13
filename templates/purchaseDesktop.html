@@ -47,7 +47,7 @@
                                 <td>{{transaction.amount}}</td>
                                 <td>{{transaction.transaction_time}}</td>
                                 <td> {{transaction.reason}} </td>
-                                <td>{{transaction.withdrawal_or_deposit}}</td>
+                                <td>{{transaction.withdrawal_or_deposit | capitalize}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

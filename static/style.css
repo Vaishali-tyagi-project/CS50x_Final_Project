@@ -30,11 +30,13 @@ body
     margin-right: 10px;
     margin-left: 10px;
     padding: 10px;
+    background: #e7eceb;
 }
 
-.button-div :hover
+.button-div a:hover, .button-div:hover
 {
-    color: darkslategray;
+    color: white;
+    background: darkgray;
 }
 
 .button-div a
@@ -236,4 +238,17 @@ footer
     padding-left: 5%;
     padding-right: 5%;
     padding-bottom: 3%;
+}
+.blue
+{
+    color: #F14555 ;
+    font-family: cursive;
+    font-weight: bold;
+    font-size: x-large;
+}
+.yellow
+{
+    color: #008275;
+    font-family: cursive;
+    font-weight: bold;
 }

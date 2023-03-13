@@ -32,14 +32,14 @@
                 <a href = "/moneywithdrawal"> Money Withdrawal </a>
             </div>
             <div class = "button-div col-md-2">
-                <a href = "/dailySales"> Daily Routine </a>
+                <a href = "/addQuantity"> Update Quantity </a>
             </div>
             <div class="col-md-3"></div>
         </div>
         <h4 class = "index-h4">Recent Updates</h4>
         <div class = "update-div">
             <ul>
-                <li class = "update-li"> Total Purchase till now: {{ total_sale }}</li>
+                <li class = "update-li"> Today's total sale till now: {{ total_sale }}</li>
             
                 {% for update in list_updates %}
                 <li class="update-li">{{ update }}</li>
