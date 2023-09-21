@@ -1,6 +1,6 @@
 # DukaanMate
 ## Final-Project-CS50x23
-By: Vaishali Tyagi and Harmeet Singh
+By: Vaishali Tyagi
 
 #### Video Demo: https://youtu.be/1fTHw286wqU
 
